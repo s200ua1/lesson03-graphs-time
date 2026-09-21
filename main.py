@@ -48,7 +48,6 @@ def load_data():
 
 df = load_data()
 
-
 # ==================================================
 # 그래프 1
 # ==================================================
@@ -104,6 +103,7 @@ st.divider()
 
 st.header("2. 기간 동안 일관객 합계가 가장 큰 영화 5편")
 
+# 영화별 일관객 합계 계산
 top5_movies = (
     df.groupby("영화명", as_index=False)["일관객"]
     .sum()
@@ -113,6 +113,7 @@ top5_movies = (
 
 top5_movie_names = top5_movies["영화명"].tolist()
 
+# 상위 5편의 날짜별 데이터
 top5_df = df[df["영화명"].isin(top5_movie_names)].copy()
 top5_df = top5_df.sort_values(["날짜", "영화명"])
 
@@ -163,18 +164,21 @@ st.divider()
 
 st.header("3. 날짜별 10위권 일관객 합계")
 
+# 날짜별 일관객 합계 계산
 daily_total = (
     df.groupby("날짜", as_index=False)["일관객"]
     .sum()
     .sort_values("날짜")
 )
 
+# 일관객 합계가 가장 컸던 3일
 top3_days = (
     daily_total
     .sort_values("일관객", ascending=False)
     .head(3)
 )
 
+# 영역 그래프
 fig3 = px.area(
     daily_total,
     x="날짜",
@@ -199,6 +203,7 @@ fig3.update_layout(
     yaxis_title="일관객 합계(명)"
 )
 
+# 합계가 가장 컸던 3일을 그래프 위에 표시
 for _, row in top3_days.iterrows():
     fig3.add_annotation(
         x=row["날짜"],
@@ -219,92 +224,14 @@ st.info(
 
 
 # ==================================================
-# 그래프 4
-# ==================================================
-st.divider()
-
-st.header("4. 영화별 일관객 합계 TOP 10")
-
-# 영화별 일관객 합계
-movie_total = (
-    df.groupby("영화명")["일관객"]
-    .sum()
-    .reset_index()
-)
-
-# 영화별 10위권 등장 날짜 수
-movie_days = (
-    df.groupby("영화명")["날짜"]
-    .nunique()
-    .reset_index()
-    .rename(columns={"날짜": "10위권에 든 날수"})
-)
-
-# 합계와 날짜 수 합치기
-movie_rank = movie_total.merge(
-    movie_days,
-    on="영화명"
-)
-
-# 일관객 합계 기준 TOP 10
-top10 = (
-    movie_rank
-    .sort_values("일관객", ascending=False)
-    .head(10)
-    .copy()
-)
-
-# 그래프에서 1위가 가장 위에 오도록 순서를 뒤집음
-top10 = top10.sort_values("일관객", ascending=True)
-
-fig4 = px.bar(
-    top10,
-    x="일관객",
-    y="영화명",
-    orientation="h",
-    title="영화별 기간 전체 일관객 합계 TOP 10",
-    labels={
-        "영화명": "영화",
-        "일관객": "기간 전체 일관객 합계"
-    },
-    hover_data={
-        "일관객": ":,.0f",
-        "10위권에 든 날수": True
-    }
-)
-
-fig4.update_traces(
-    hovertemplate=
-    "영화: %{y}<br>"
-    "기간 전체 일관객: %{x:,.0f}명<br>"
-    "10위권에 든 날수: %{customdata[0]}일"
-    "<extra></extra>",
-    customdata=top10[["10위권에 든 날수"]].values
-)
-
-fig4.update_layout(
-    xaxis_title="기간 전체 일관객 합계(명)",
-    yaxis_title="영화",
-    hovermode="closest"
-)
-
-st.plotly_chart(fig4, use_container_width=True)
-
-st.info(
-    "이 그래프로 알 수 있는 것: "
-    "전체 기간 동안 가장 많은 관객을 모은 영화 10편과 각 영화가 10위권에 머문 기간을 비교할 수 있습니다."
-)
-
-
-# ==================================================
 # 앞으로 추가할 그래프 영역
 # ==================================================
 st.divider()
 
-st.header("5. 다음 그래프")
+st.header("4. 다음 그래프")
 st.caption("앞으로 새로운 그래프를 추가할 공간입니다.")
 
 st.divider()
 
-st.header("6. 다음 그래프")
+st.header("5. 다음 그래프")
 st.caption("앞으로 새로운 그래프를 추가할 공간입니다.")
