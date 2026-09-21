@@ -113,7 +113,7 @@ top5_movies = (
 
 top5_movie_names = top5_movies["영화명"].tolist()
 
-# 상위 5편의 날짜별 데이터만 추출
+# 상위 5편의 날짜별 데이터
 top5_df = df[df["영화명"].isin(top5_movie_names)].copy()
 top5_df = top5_df.sort_values(["날짜", "영화명"])
 
@@ -122,7 +122,6 @@ fig2 = px.line(
     x="날짜",
     y="일관객",
     color="영화명",
-    markers=False,
     title="일관객 합계 상위 5편의 날짜별 일관객 변화",
     labels={
         "날짜": "날짜",
@@ -159,14 +158,80 @@ st.info(
 
 
 # ==================================================
+# 그래프 3
+# ==================================================
+st.divider()
+
+st.header("3. 날짜별 10위권 일관객 합계")
+
+# 날짜별 일관객 합계 계산
+daily_total = (
+    df.groupby("날짜", as_index=False)["일관객"]
+    .sum()
+    .sort_values("날짜")
+)
+
+# 일관객 합계가 가장 컸던 3일
+top3_days = (
+    daily_total
+    .sort_values("일관객", ascending=False)
+    .head(3)
+)
+
+# 영역 그래프
+fig3 = px.area(
+    daily_total,
+    x="날짜",
+    y="일관객",
+    title="날짜별 박스오피스 10위권 일관객 합계",
+    labels={
+        "날짜": "날짜",
+        "일관객": "10위권 일관객 합계"
+    }
+)
+
+fig3.update_traces(
+    hovertemplate=
+    "날짜: %{x|%Y-%m-%d}<br>"
+    "10위권 일관객 합계: %{y:,.0f}명"
+    "<extra></extra>"
+)
+
+fig3.update_layout(
+    hovermode="x unified",
+    xaxis_title="날짜",
+    yaxis_title="일관객 합계(명)"
+)
+
+# 합계가 가장 컸던 3일을 그래프 위에 표시
+for _, row in top3_days.iterrows():
+    fig3.add_annotation(
+        x=row["날짜"],
+        y=row["일관객"],
+        text=row["날짜"].strftime("%Y-%m-%d"),
+        showarrow=True,
+        arrowhead=2,
+        ax=0,
+        ay=-45
+    )
+
+st.plotly_chart(fig3, use_container_width=True)
+
+st.info(
+    "이 그래프로 알 수 있는 것: "
+    "날짜별 영화관 관객 규모의 변화를 확인하고, 10위권 영화의 관객 합계가 특히 높았던 날을 알 수 있습니다."
+)
+
+
+# ==================================================
 # 앞으로 추가할 그래프 영역
 # ==================================================
 st.divider()
 
-st.header("3. 다음 그래프")
+st.header("4. 다음 그래프")
 st.caption("앞으로 새로운 그래프를 추가할 공간입니다.")
 
 st.divider()
 
-st.header("4. 다음 그래프")
+st.header("5. 다음 그래프")
 st.caption("앞으로 새로운 그래프를 추가할 공간입니다.")
