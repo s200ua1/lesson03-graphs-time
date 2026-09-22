@@ -225,14 +225,12 @@ st.divider()
 
 st.header("4. 영화별 일관객 합계 TOP 10")
 
-# 영화별 일관객 합계
 movie_total = (
     df.groupby("영화명")["일관객"]
     .sum()
     .reset_index()
 )
 
-# 영화별 10위권 등장 날짜 수
 movie_days = (
     df.groupby("영화명")["날짜"]
     .nunique()
@@ -240,13 +238,11 @@ movie_days = (
     .rename(columns={"날짜": "10위권에 든 날수"})
 )
 
-# 합계와 날짜 수 합치기
 movie_rank = movie_total.merge(
     movie_days,
     on="영화명"
 )
 
-# 일관객 합계 기준 TOP 10
 top10 = (
     movie_rank
     .sort_values("일관객", ascending=False)
@@ -254,7 +250,6 @@ top10 = (
     .copy()
 )
 
-# 그래프에서 1위가 가장 위에 오도록 순서를 뒤집음
 top10 = top10.sort_values("일관객", ascending=True)
 
 fig4 = px.bar(
@@ -297,14 +292,108 @@ st.info(
 
 
 # ==================================================
+# 그래프 5
+# ==================================================
+st.divider()
+
+st.header("5. 월 × 요일별 10위권 일관객 합계")
+
+# 날짜에서 월과 요일 추출
+heatmap_df = df.copy()
+
+heatmap_df["월"] = heatmap_df["날짜"].dt.month
+
+weekday_map = {
+    0: "월요일",
+    1: "화요일",
+    2: "수요일",
+    3: "목요일",
+    4: "금요일",
+    5: "토요일",
+    6: "일요일"
+}
+
+heatmap_df["요일"] = heatmap_df["날짜"].dt.dayofweek.map(weekday_map)
+
+# 월 × 요일별 일관객 합계
+heatmap_data = (
+    heatmap_df
+    .groupby(["월", "요일"])["일관객"]
+    .sum()
+    .reset_index()
+)
+
+# 요일 순서 고정
+weekday_order = [
+    "월요일",
+    "화요일",
+    "수요일",
+    "목요일",
+    "금요일",
+    "토요일",
+    "일요일"
+]
+
+heatmap_data["요일"] = pd.Categorical(
+    heatmap_data["요일"],
+    categories=weekday_order,
+    ordered=True
+)
+
+# 피벗
+heatmap_pivot = heatmap_data.pivot(
+    index="월",
+    columns="요일",
+    values="일관객"
+)
+
+# 월 순서 정렬
+heatmap_pivot = heatmap_pivot.sort_index()
+
+fig5 = px.imshow(
+    heatmap_pivot,
+    labels={
+        "x": "요일",
+        "y": "월",
+        "color": "일관객 합계"
+    },
+    x=weekday_order,
+    y=heatmap_pivot.index,
+    text_auto=".2s",
+    aspect="auto",
+    title="월 × 요일별 10위권 일관객 합계",
+    color_continuous_scale="Blues"
+)
+
+fig5.update_traces(
+    hovertemplate=
+    "%{y}월 %{x}<br>"
+    "일관객 합계: %{z:,.0f}명"
+    "<extra></extra>"
+)
+
+fig5.update_layout(
+    xaxis_title="요일",
+    yaxis_title="월"
+)
+
+st.plotly_chart(fig5, use_container_width=True)
+
+st.info(
+    "이 그래프로 알 수 있는 것: "
+    "월과 요일에 따라 10위권 영화의 일관객 합계가 어떻게 달라지는지 한눈에 비교할 수 있습니다."
+)
+
+
+# ==================================================
 # 앞으로 추가할 그래프 영역
 # ==================================================
 st.divider()
 
-st.header("5. 다음 그래프")
+st.header("6. 다음 그래프")
 st.caption("앞으로 새로운 그래프를 추가할 공간입니다.")
 
 st.divider()
 
-st.header("6. 다음 그래프")
+st.header("7. 다음 그래프")
 st.caption("앞으로 새로운 그래프를 추가할 공간입니다.")
